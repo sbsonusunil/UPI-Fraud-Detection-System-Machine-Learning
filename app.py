@@ -73,11 +73,14 @@ def load_engine():
     try:
         model = joblib.load("models/xgb_model.pkl")
         preprocessor = joblib.load("models/preprocessor.pkl")
-        return model, preprocessor
+        encoder = joblib.load('models/onehot_encoder.pkl')
+        columns = joblib.load('models/model_columns.pkl')
+
+        return model, preprocessor, encoder, columns
     except:
         return None, None
 
-model, preprocessor = load_engine()
+model, preprocessor, encoder, columns = load_engine()
 if model is None:
     st.error("Model files not found in models/")
     st.stop()
