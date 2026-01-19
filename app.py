@@ -78,7 +78,7 @@ def load_engine():
 
         return model, preprocessor, encoder, columns
     except:
-        return None, None
+        return None, None, None, None
 
 model, preprocessor, encoder, columns = load_engine()
 if model is None:
