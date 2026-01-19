@@ -87,10 +87,10 @@ def load_engine():
         return model, preprocessor, encoder, columns
         
     except FileNotFoundError as e:
-        st.error(f"❌ File not found: {e}")
+        st.error(f" File not found: {e}")
         return None, None, None, None
     except Exception as e:
-        st.error(f"❌ Error loading models: {type(e).__name__}: {e}")
+        st.error(f" Error loading models: {type(e).__name__}: {e}")
         return None, None, None, None
 
 model, preprocessor, encoder, columns = load_engine()
