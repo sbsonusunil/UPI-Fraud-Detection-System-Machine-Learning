@@ -70,14 +70,27 @@ st.markdown("""
 # LOAD MODEL
 @st.cache_resource
 def load_engine():
+    """Load ML models with proper error handling"""
     try:
+        # Load core models
         model = joblib.load("models/xgb_model.pkl")
         preprocessor = joblib.load("models/preprocessor.pkl")
-        encoder = joblib.load('models/onehot_encoder.pkl')
-        columns = joblib.load('models/model_columns.pkl')
-
+        
+        # Optional: Load encoder and columns only if needed
+        try:
+            encoder = joblib.load('models/onehot_encoder.pkl')
+            columns = joblib.load('models/model_columns.pkl')
+        except:
+            encoder = None
+            columns = None
+        
         return model, preprocessor, encoder, columns
-    except:
+        
+    except FileNotFoundError as e:
+        st.error(f"❌ File not found: {e}")
+        return None, None, None, None
+    except Exception as e:
+        st.error(f"❌ Error loading models: {type(e).__name__}: {e}")
         return None, None, None, None
 
 model, preprocessor, encoder, columns = load_engine()
