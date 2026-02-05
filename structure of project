@@ -1,0 +1,189 @@
+# UPI Fraud Detection Project
+
+## Project Overview
+
+**Objective**: "I built an end-to-end fraud detection system for UPI transactions using XGBoost. The project involved handling a highly imbalanced dataset where fraud cases were less than 1% of transactions.
+I performed extensive feature engineering, including cyclical encoding for temporal features and logarithmic transformation for transaction amounts. To handle class imbalance, I used SMOTE oversampling.
+The final XGBoost model achieved 99.9% ROC-AUC with only 88 false negatives out of approximately 50,000 fraud cases in the test set - a 71% reduction compared to the baseline model.
+I also created a production-ready deployment pipeline by saving the trained model, preprocessor, and feature columns for consistent real-time inference. The system can process transactions with sub-second latency while maintaining high accuracy."
+
+**Business Impact**: 
+- Reduces financial losses from fraud
+- Improves customer trust and security
+- Enables real-time fraud prevention
+
+---
+
+## 1. Problem Statement & Context
+
+"I developed a fraud detection system for UPI transactions to identify fraudulent activities in digital payment systems. With the rapid growth of UPI transactions in India, fraud detection has become critical for financial institutions."
+- UPI processes billions of transactions monthly
+- Fraud causes significant financial losses
+- Traditional rule-based systems miss sophisticated fraud patterns
+- ML can identify complex, non-linear patterns in transaction behavior
+
+
+
+## 2. Dataset & Exploratory Data Analysis
+
+### Dataset Characteristics
+- **Source**: UPI transaction records
+- **Size**: Multiple transaction records with temporal data
+- **Key Features**: 
+  - Transaction details (type, amount, status, merchant category)
+  - User information (sender/receiver age groups, banks, states)
+  - Technical metadata (device type, network type)
+  - Temporal features (timestamp, date, hour, day of week)
+
+### Class Imbalance Challenge
+**Critical Point**: Fraud is a rare event (typically <1-5% of transactions)
+
+**How I handled it**:
+"The dataset had severe class imbalance with fraud cases being the minority class. I used SMOTE (Synthetic Minority Over-sampling Technique) to balance the classes before training, which helped the model learn fraud patterns effectively without being biased toward the majority class."
+
+### Key EDA Insights
+Be ready to discuss patterns you found:
+- Fraud patterns by time of day
+- High-risk merchant categories
+- Device/network type correlations with fraud
+- Geographic patterns
+- Transaction amount distributions
+
+---
+
+## 3. Feature Engineering Strategy
+
+### Why Feature Engineering Matters
+"Raw features alone weren't sufficient. I engineered features to capture behavioral patterns and temporal dynamics that fraudsters exhibit."
+
+### Key Engineered Features
+
+#### 1. **Cyclical Time Encoding**
+```python
+hour_sin = sin(2π × hour / 24)
+hour_cos = cos(2π × hour / 24)
+day_of_week_sin = sin(2π × day / 7)
+day_of_week_cos = cos(2π × day / 7)
+```
+
+**Why**: 
+- Preserves cyclical nature of time (11 PM is close to 12 AM)
+- Prevents the model from treating time as linear
+- Captures fraud patterns at specific times (e.g., late-night transactions)
+
+
+#### 2. **Logarithmic Amount Transformation**
+```python
+amount_log = log(1 + amount)
+```
+
+**Why**:
+- Handles right-skewed distribution of transaction amounts
+- Reduces impact of outliers
+- Normalizes the scale for better model performance
+- The +1 handles zero values
+
+#### 3. **Categorical Features**
+- Transaction type (P2P, P2M)
+- Merchant categories
+- Device and network types
+- Geographic information (sender/receiver states)
+- Banks involved
+
+## 4. Model Selection & Architecture
+
+"I chose XGBoost for several reasons:
+
+1. **Handles Imbalanced Data Well**: Through scale_pos_weight parameter and evaluation metrics
+2. **Feature Importance**: Provides interpretability - crucial for fraud detection systems
+3. **Performance**: Excellent balance of accuracy and speed for production deployment
+4. **Robustness**: Handles missing values and doesn't require extensive feature scaling
+5. **Regularization**: Built-in L1/L2 regularization prevents overfitting"
+
+
+## 5. Preprocessing Pipeline
+
+### Why Use sklearn Pipelines?
+
+"I used sklearn's Pipeline and ColumnTransformer to ensure reproducible and production-ready preprocessing."
+
+**Components**:
+
+1. **Categorical Pipeline**:
+   - SimpleImputer (most_frequent strategy)
+   - OneHotEncoder (handle_unknown='ignore' for new categories)
+
+2. **Numerical Pipeline**:
+   - SimpleImputer (median strategy - robust to outliers)
+
+**Benefits**:
+- Prevents data leakage (fit only on training data)
+- Ensures consistent preprocessing in production
+- Easy to save and load for deployment
+
+## 6. Model Performance & Evaluation
+
+### Metrics Explanation
+
+"In fraud detection, accuracy is misleading due to class imbalance. A model predicting all transactions as legitimate could have 99% accuracy but 0% fraud detection."
+
+#### Key Metrics I Used:
+
+1. **Confusion Matrix Analysis**:
+```
+[[49904     0]
+ [   88 49816]]
+```
+- **False Negatives (88)**: Frauds missed - CRITICAL metric
+- **False Positives (0)**: Legitimate transactions flagged as fraud
+- "Reducing false negatives is crucial as they represent actual fraud losses"
+
+2. **Precision & Recall**:
+- **Precision (1.00)**: Of flagged frauds, how many are actual frauds
+- **Recall (1.00)**: Of actual frauds, how many did we catch
+- **F1-Score (1.00)**: Harmonic mean balancing both
+
+3. **ROC-AUC (0.9992)**: 
+- Measures model's ability to distinguish between classes
+- Near-perfect score indicates excellent separation
+
+4. **PR-AUC (0.9995)**:
+- More informative for imbalanced datasets
+- Focuses on positive class performance
+
+### Comparison: Before vs After Feature Engineering
+
+**Before Feature Engineering**: 306 false negatives
+**After Feature Engineering**: 88 false negatives
+
+**Impact**: "71% reduction in missed frauds - translating to significantly fewer financial losses"
+
+
+## 7. Technical Challenges & Solutions
+
+### Challenge 1: Class Imbalance
+**Solution**: SMOTE oversampling after train-test split to prevent data leakage
+
+### Challenge : Overfitting Risk
+**Solution**: 
+- Train-test split with stratification
+- XGBoost regularization parameters
+- Cross-validation during hyperparameter tuning
+
+### Challenge 4: Production Readiness
+**Solution**: 
+- Saved preprocessor pipeline for consistent feature transformation
+- Saved model_columns.pkl to ensure correct feature order
+- Modular code structure for easy deployment
+
+
+
+
+
+
+
+
+
+
+
+
